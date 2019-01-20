@@ -292,7 +292,7 @@ for (i=0;i<(g->depth)-1;i++){
 clear_Vec(g->in);
 }
 
-void Train_on_batch(Graph *g, Graph *d_g_itr, Graph *d_g, double **data, double lambda, D_Func dist){
+void Train_on_batch(Graph *g, Graph *d_g_itr, Graph *d_g, double **data, double lambda, D_func dist){
 int i,j,k,l;
 
 if(!g){puts(puts("Computational Graph missing");system("PAUSE");return;)}
