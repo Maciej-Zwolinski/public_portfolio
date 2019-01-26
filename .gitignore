@@ -1,7 +1,7 @@
 *.cbp
 **/bin
 **/obj
-
+*.layout
 
 
 # Prerequisites
