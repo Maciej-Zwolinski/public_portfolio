@@ -13,7 +13,7 @@ logging.basicConfig(
 
 def gen_low_regions(file):
     """Returns a list of 'low' regions boundries"""
-    n_channel,sample_rate,data=utils.wav_to_array(file)
+    n_channel, sample_rate, data=utils.wav_to_array(file)
     p=list()
     for span in args.span:
         x=utils.avg_zerolike_density(data,span=span)
@@ -21,9 +21,9 @@ def gen_low_regions(file):
         g=utils.edge_cleanup(h,sample_rate)
         p.append(copy.deepcopy(g))
 
-    return p
+    return p, n_channel
 
-def boundry_stability_check(p):
+def boundry_stability_check(p, n_channel):
     """Returns boundries that are stable across all spans"""
     while len(p)>1:
         for k in range(n_channel):
@@ -37,7 +37,7 @@ def boundry_stability_check(p):
 
     return p
 
-def set_flags(p, n_channels):
+def set_flags(p, n_channel):
     """Sets corruption flags for channels"""
     flg=list()
     for k in range(n_channel):
@@ -49,18 +49,18 @@ def set_flags(p, n_channels):
     
 
 def main(args):
-    path=args.datadir
-    assert len(args.span)<2, "Span too short, at least 2 elements required"
+    logger = logging.getLogger(__name__)
+    logger.debug(args.span)
+    assert len(args.span)>2, "Span too short, at least 2 elements required"
 
-    for file in os.listdir(path):
+    for file in os.listdir(args.datadir):
         if file.endswith('.wav'):
-            p = gen_low_regions(file)
-            p = boundry_stability_check(p)
-            flg = set_flags(p, n_channels)
+            p, n_channel = gen_low_regions(os.path.join(args.datadir, file))
+            p = boundry_stability_check(p, n_channel)
+            flg = set_flags(p, n_channel)
 
             if (1 in flg) and not(0 in flg):
-                out=f'[{file}][valid]'
-                print(out)
+                logger.info(f'[{file}][valid]')
                 continue
             elif (1 in flg) and (0 in flg):
                 out=f'[{file}][partially valid]'
@@ -71,9 +71,9 @@ def main(args):
                 if flg[k]==1:
                     out+='[NaN]'
                 else:
-                    out+=f'{p[0][k][0][0]}'
+                    out+=f'[{p[0][k][0][0]}]'
 
-            logger = logging.getLogger(__name__)
+            
             logger.info(f"{out}")
 
     os.system("pause")
