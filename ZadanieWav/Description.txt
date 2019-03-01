@@ -7,29 +7,27 @@ Rationale behind the solution:
 
 1.Observations:
 	Lets observe, that when there is no sound (after playing the file) the values recorded in the file aren't '0', but rather some close values.
-	Lets observe, that a simillar thing happens in a portion of a file that's corrupted.
-	Lets also observe, that when a signal is 'high' we should expect relatively low frequency of 'low' (or zerlo-like) values.
+	Lets observe, that a similar thing happens in a portion of a file that's corrupted.
+	Lets also observe, that when a signal is 'high' we should expect relatively low frequency of 'low' (or zero-like) values.
 2.Solution:
 	Data preparation:
 		First I load data from a .wav file into np.array object for easy manipulation.
-		Second I replace all signals that I clasify as 'low' with 1s and all 'high' with 0s.
+		Second I replace all signals that I classify as 'low' with 1s and all 'high' with 0s.
 	
 	Lets imagine a perfect scenario, where there is a series of samples that are 'low' followed by a series of samples that are 'high'.
 	If we calculate an average density of 'low' samples over a fixed number of samples (span), we will end up with a slightly shorter array of 
 	'local densities' of 'low' samples.
-	In that scenario when a 'local density' drops from above .5 to below .5 for a i-th sample, that would mean that there is a rising boundry between 
+	In that scenario when a 'local density' drops from above .5 to below .5 for a i-th sample, that would mean that there is a rising boundary between 
 	'low' and 'high' signals located at ~(i+span//2)-th sample (in the original file).
-	Similar thing happens when there is a falling boundry between 'high' and 'low' signals.
+	Similar thing happens when there is a falling boundary between 'high' and 'low' signals.
 
-	In reality there is no clean cut-off between 'high' and 'low' signal sections, however we can deduce from common sense that naturally occuring sounds
+	In reality there is no clean cut-off between 'high' and 'low' signal sections, however we can deduce from common sense that naturally occurring sounds
 	fade or rise slowly - or at least slower than random corruption.
-	Therefore I postulate, that a boundry between corruption iduced 'low' signal and it's surrounding should be very stable under changing span values.
-	When the sound naturally fades away, the boundry should by far more unstable under changing span, as we expect many more naturally occuring 'low' samples
-	in a faiding signal.
+	Therefore, I postulate, that a boundary between corruption induced 'low' signal and its surrounding should be very stable under changing span values.
+	When the sound naturally fades away, the boundary should by far more unstable under changing span, as we expect many more naturally occurring 'low' samples
+	in a fading signal.
 
-	We should introduce some noise-cancelling (multiple boundry crossings) techniques at this point such as hysteresis, or simple concatenation. Aditionaly
-	we can simply ignore very long (.1s) streaches of silence as these are indistinguishible from intentional silence and are (most likely) irreperable anyway.
+	We should introduce some noise-cancelling (multiple boundary crossings) techniques at this point such as hysteresis, or simple concatenation. Additionally
+	we can simply ignore very long (.1s) stretches of silence as these are indistinguishable from intentional silence and are (most likely) irreparable anyway.
 
-	The code presented in this folder does exactly that: produces boundries for 'low' signal periods and checks their stability undr changing span.
-	
-
+	The code presented in this folder does exactly that: produces boundaries for 'low' signal periods and checks their stability under changing span.
