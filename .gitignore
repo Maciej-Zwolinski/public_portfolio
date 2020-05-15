@@ -1,3 +1,9 @@
+Python/SquareTest/.idea/
+Python/SquareTest/__pycache__/
+Python/SquareTest/vnv/
+
+
+
 *.cbp
 **/bin
 **/obj
