@@ -1,5 +1,6 @@
 import pygame
 from SpriteDerivedClasses import MouseIntractableSprite
+from States import StateManager
 
 from utility_funtions import abs_distance, distance_xy
 
@@ -10,10 +11,10 @@ class Mouse(pygame.sprite.Sprite):
     """
     Mouse class controls all interactions between sprites and pygame.mouse object.
     """
-
+    # TODO: change mouse class to singleton (using 'BORG' method)
     handled_events = [pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP]
     # sprites that the mouse can interact with
-    mouse_interaction_group = MouseIntractableSprite.mouse_interaction_group
+    active_state = StateManager.state_queue[-1]
 
     def __init__(self, owner, *groups, initial_position=None):
         """
@@ -24,20 +25,36 @@ class Mouse(pygame.sprite.Sprite):
         drag_mode: controls interaction between mouse movements and object interacted with
         active_object: object with which mouse interacts
         """
-        super().__init__(*groups)
+        super().__init__(groups)
         self.image = pygame.Surface([1, 1])
         self.rect = self.image.get_rect()
         self.pos = None
         self.owner = owner
-        self.lmb = Mouse.LeftMouseButton(self)
-        self.rmb = Mouse.RightMouseButton(self)
-        self.drag_mode = False
+        self._lmb = Mouse.LeftMouseButton(self)
+        self._rmb = Mouse.RightMouseButton(self)
+        self.drag_mode: bool = False
         self.active_object: MouseIntractableSprite or None = None
         self.update(set_pos=initial_position) if initial_position else self.update()
 
+    def internal_state(self):
+        return {'pos': self.pos, 'drag_mode': self.drag_mode, 'active_object': self.active_object,
+                '_lmb': self._lmb.internal_state(), '_rmb': self._rmb.internal_state()}
+
+    def load_internal_state(self, state_dict):
+        self.pos, self.drag_mode, self.active_object
+        self._lmb.load_internal_state(state_dict['lmb'])
+        self._rmb.load_internal_state(state_dict['rmb'])
+
+    def clear(self):
+        """clear mouse internal state"""
+        self._lmb.clear()
+        self._rmb.clear()
+        self.active_object = None
+        self.drag_mode = False
+
     def drop_active_object(self):
-        self.lmb.clear()
-        self.rmb.clear()
+        self._lmb.clear()
+        self._rmb.clear()
         if self.drag_mode:
             self.drag_mode = False
         if self.active_object:
@@ -46,8 +63,8 @@ class Mouse(pygame.sprite.Sprite):
 
     def abandon_active_object(self):
         """return active object to its last permanent location"""
-        self.lmb.clear()
-        self.rmb.clear()
+        self._lmb.clear()
+        self._rmb.clear()
         if self.drag_mode:
             self.drag_mode = False
         if self.active_object:
@@ -70,16 +87,22 @@ class Mouse(pygame.sprite.Sprite):
 
             detects collision with topmost interactable sprite, if none are detected ignores input
             """
-            try:
-                self.mouse.active_object = self.mouse.mouse_interaction_group.get_sprites_at(position)[-1]
-                self.primed = True
-                self.primed_position = position
-            except IndexError:
-                pass
+            for mouse_interaction_group in self.mouse.active_state.mouse_interaction_groups:
+                try:
+                    self.mouse.active_object = mouse_interaction_group.get_sprites_at(position)[-1]
+                    self.primed = True
+                    self.primed_position = position
+                except IndexError:
+                    continue
+                if self.mouse.active_object:
+                    return
 
         def release(self):
             """Placeholder function to control button release"""
             pass
+
+        def internal_state(self):
+            return {'primed': self.primed, 'primed_position': self.primed_position}
 
         def clear(self):
             """Offers a way to clear button state"""
@@ -154,14 +177,14 @@ class Mouse(pygame.sprite.Sprite):
             # dragging is initiated by left mouse button only and disabled by right clicks
             for event in events:
                 # if the mouse in a drag mode, but we returned to nearby location, we want to cancel dragging
-                if self.drag_mode and abs_distance(event.pos, self.lmb.primed_position) < DRAG_ENGAGE_MIN_SHIFT:
+                if self.drag_mode and abs_distance(event.pos, self._lmb.primed_position) < DRAG_ENGAGE_MIN_SHIFT:
                     self.active_object.return_to_anchor_point()
                     self.drag_mode = False
 
                 if self.drag_mode and self.active_object:
                     # lmb released:
                     if event.type == pygame.MOUSEBUTTONUP and event.button == 1:
-                        self.active_object.drag(distance_xy(self.lmb.primed_position, event.pos))
+                        self.active_object.drag(distance_xy(self._lmb.primed_position, event.pos))
                         self.drop_active_object()
                         continue
                     # rmb pressed:
@@ -170,22 +193,22 @@ class Mouse(pygame.sprite.Sprite):
                         continue
 
                 elif not self.drag_mode:
-                    if self.lmb.primed:
+                    if self._lmb.primed:
                         if event.button == 1 and event.type == pygame.MOUSEBUTTONUP:
-                            self.lmb.release()
+                            self._lmb.release()
                             continue
                     else:
                         if event.button == 1 and event.type == pygame.MOUSEBUTTONDOWN:
-                            self.lmb.prime(event.pos)
+                            self._lmb.prime(event.pos)
                             continue
 
-                    if self.rmb.primed:
+                    if self._rmb.primed:
                         if event.button == 3 and event.type == pygame.MOUSEBUTTONUP:
-                            self.rmb.release()
+                            self._rmb.release()
                             continue
                     else:
                         if event.button == 3 and event.type == pygame.MOUSEBUTTONDOWN:
-                            self.rmb.prime(event.pos)
+                            self._rmb.prime(event.pos)
                             continue
         """
         finally, if we have an active_object:
@@ -199,9 +222,9 @@ class Mouse(pygame.sprite.Sprite):
 
         """
         if self.active_object:
-            from_, to_ = (self.lmb.primed_position, self.pos)
+            from_, to_ = (self._lmb.primed_position, self.pos)
             if not self.drag_mode:
-                if self.lmb.primed and abs_distance(from_, to_) >= DRAG_ENGAGE_MIN_SHIFT:
+                if self._lmb.primed and abs_distance(from_, to_) >= DRAG_ENGAGE_MIN_SHIFT:
                     self.drag_mode = True
                     self.active_object.drag(distance_xy(from_, to_))
             else:
