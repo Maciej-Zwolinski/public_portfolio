@@ -1,3 +1,5 @@
-This repository will be updated with my most recently finished or ongoing projects. Below you can find short descriptions of each folder.
+This repository will be updated with my most recently finished or ongoing projects. Currently only Python projects are published.
 
---- Zadanie_wav - this is my tool for analising .wav files and finding sudden drops in signal (potential corruptions).
+News:
+
+--- [19/05/20] Extracted 'interesting' project-agnostic functionalities into 'Utility' package
