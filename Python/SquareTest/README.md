@@ -15,8 +15,6 @@ Features under development:
         - Game loop 
  
     - Pop-up and mouse-over menus
-    - Card manipulation related core objects:
-        - Hand
-        - Card stack
+    - Snap-grids and node maps navigation
     
         

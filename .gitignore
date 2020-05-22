@@ -1,6 +1,7 @@
-Python/SquareTest/.idea/
-Python/SquareTest/__pycache__/
-Python/SquareTest/vnv/
+*.gitignore
+**/.idea/
+**/__pycache__/
+**/vnv/
 
 
 
