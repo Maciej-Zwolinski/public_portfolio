@@ -1,6 +1,6 @@
 import pygame
 from SpriteDerivedClasses import MouseIntractableSprite
-from States import StateManager
+from States import StateManager, State
 
 from utility_funtions import abs_distance, distance_xy
 
@@ -13,10 +13,8 @@ class Mouse(pygame.sprite.Sprite):
     """
     # TODO: change mouse class to singleton (using 'BORG' method)
     handled_events = [pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP]
-    # sprites that the mouse can interact with
-    active_state = StateManager.state_queue[-1]
 
-    def __init__(self, owner, *groups, initial_position=None):
+    def __init__(self, owner, *groups, initial_position=None, state_manager=None):
         """
         :param owner: entity that controls the mouse (player)
         image, rect: placeholder objects that will be used to support interactions with sprite groups that
@@ -33,17 +31,9 @@ class Mouse(pygame.sprite.Sprite):
         self._lmb = Mouse.LeftMouseButton(self)
         self._rmb = Mouse.RightMouseButton(self)
         self.drag_mode: bool = False
+        self.active_state: State or None = state_manager.state_queue[-1] if state_manager else None
         self.active_object: MouseIntractableSprite or None = None
         self.update(set_pos=initial_position) if initial_position else self.update()
-
-    def internal_state(self):
-        return {'pos': self.pos, 'drag_mode': self.drag_mode, 'active_object': self.active_object,
-                '_lmb': self._lmb.internal_state(), '_rmb': self._rmb.internal_state()}
-
-    def load_internal_state(self, state_dict):
-        self.pos, self.drag_mode, self.active_object
-        self._lmb.load_internal_state(state_dict['lmb'])
-        self._rmb.load_internal_state(state_dict['rmb'])
 
     def clear(self):
         """clear mouse internal state"""
@@ -100,9 +90,6 @@ class Mouse(pygame.sprite.Sprite):
         def release(self):
             """Placeholder function to control button release"""
             pass
-
-        def internal_state(self):
-            return {'primed': self.primed, 'primed_position': self.primed_position}
 
         def clear(self):
             """Offers a way to clear button state"""

@@ -1,4 +1,5 @@
 import pygame
+from .utility import object_save_load
 
 
 class StateManager:
@@ -61,9 +62,21 @@ class State:
         else:
             return self
 
-    def pause(self, *args, event_que=None, **kwargs):
-        self.resume_state['mouse'] = self.mouse.state()
-        self.resume_state['events'] = event_que
+    def pause(self, *args, event_que=None, clear=False, **kwargs):
+        mouse_state_keys = ('pos', 'active_object', 'drag_mode', {'_lmb': ('primed', 'primed_position')},
+                            {'_rmb': ('primed', 'primed_position')})
+        self.resume_state['mouse'] = object_save_load.save_object_internal_state_to_dict(self.mouse, mouse_state_keys)
+        self.resume_state['event_queue'] = event_que
+        if clear:
+            pygame.event.clear()
 
-    def resume(self, *args, **kwargs):
-        self.mouse
+    def resume(self, *args, clear=False, **kwargs):
+        # load mouse object
+        object_save_load.load_object_internal_state_from_dict(self.mouse, self.resume_state['mouse'])
+        if clear:
+            # clears event queue upon resuming
+            pygame.event.clear()
+        for event in self.resume_state['event_queue']:
+            pygame.event.post(event)
+
+        self.resume_state = {}

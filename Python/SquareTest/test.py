@@ -1,4 +1,5 @@
 import pygame
+from States import StateManager, State
 from mouse import Mouse
 from SpriteDerivedClasses import MouseIntractableSprite
 

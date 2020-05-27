@@ -41,7 +41,7 @@ class MouseIntractableSprite(ClickableSprite):
         _layer: attribute needed work with LayerdUpdates group
         _anchor_point: last semi-permanent position, used to save the return point in case anything goes wrong
         """
-        super().__init__(groups, kwargs)
+        super().__init__(*groups, **kwargs)
 
         self._anchor_point = self.rect.center if self.rect else None
 
