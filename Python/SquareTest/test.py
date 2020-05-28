@@ -21,7 +21,7 @@ class SmallSquare(MouseIntractableSprite):
 
     def __init__(self, colour, center, *groups):
         super().__init__(*groups)
-        self.image = pygame.Surface((100,100))
+        self.image = pygame.Surface((100, 100))
         self.image.fill(colour)
         self.rect = self.image.get_rect()
         self.rect.center = center

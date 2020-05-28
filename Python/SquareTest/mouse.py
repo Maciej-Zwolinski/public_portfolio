@@ -14,7 +14,7 @@ class Mouse(pygame.sprite.Sprite):
     # TODO: change mouse class to singleton (using 'BORG' method)
     handled_events = [pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP]
 
-    def __init__(self, owner, *groups, initial_position=None, state_manager=None):
+    def __init__(self, owner, *groups, initial_position=None):
         """
         :param owner: entity that controls the mouse (player)
         image, rect: placeholder objects that will be used to support interactions with sprite groups that
@@ -24,16 +24,32 @@ class Mouse(pygame.sprite.Sprite):
         active_object: object with which mouse interacts
         """
         super().__init__(groups)
-        self.image = pygame.Surface([1, 1])
-        self.rect = self.image.get_rect()
+        # self.image = pygame.Surface([1, 1])
+        # self.rect = self.image.get_rect()
         self.pos = None
         self.owner = owner
         self._lmb = Mouse.LeftMouseButton(self)
         self._rmb = Mouse.RightMouseButton(self)
         self.drag_mode: bool = False
-        self.active_state: State or None = state_manager.state_queue[-1] if state_manager else None
+        # self.active_state: State or None = StateManager.state_queue[-1] if state_manager else None
         self.active_object: MouseIntractableSprite or None = None
         self.update(set_pos=initial_position) if initial_position else self.update()
+
+    @property
+    def active_state(self):
+        try:
+            return StateManager.state_queue[-1]
+        except (AttributeError, IndexError):
+            return None
+
+    @property
+    def pos(self):
+        return pygame.mouse.get_pos()
+
+    @pos.setter
+    def pos(self, new_pos: tuple):
+        self.pos = new_pos
+        pygame.mouse.set_pos(*new_pos)
 
     def clear(self):
         """clear mouse internal state"""
@@ -113,7 +129,7 @@ class Mouse(pygame.sprite.Sprite):
                 self.mouse.active_object = None
                 self.clear()
 
-    def update(self, event_list=None, set_pos=None, move=None, **kwargs):
+    def update(self, event_list=None, set_pos: tuple or None = None, move: tuple or None = None, **kwargs):
         # TODO: get rid of the **kwargs as they aren't strictly necessary
         """
         :param event_list:
@@ -128,14 +144,11 @@ class Mouse(pygame.sprite.Sprite):
         if event_list is None:
             event_list = []
         if set_pos:
-            x, y = set_pos
-            pygame.mouse.set_pos(x, y)
+            self.pos = set_pos
         if move:
             dx, dy = move
             x, y = self.pos
             pygame.mouse.set_pos(x + dx, y + dy)
-
-        self.pos = pygame.mouse.get_pos()
 
         """
         handling of passed events (if any)
@@ -220,4 +233,4 @@ class Mouse(pygame.sprite.Sprite):
                 else:
                     self.active_object.drag(distance_xy(from_, to_))
 
-        self.rect.center = self.pos
+        # self.rect.center = self.pos

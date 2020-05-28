@@ -18,7 +18,7 @@ class ClickableSprite(pygame.sprite.Sprite):
         self.rect: pygame.Rect or None = self.image.get_rect() if self.image else None
         if self.image and center:
             self.rect.center = center
-        elif topleft:
+        elif self.image and topleft:
             self.rect.topleft = topleft
 
     def on_lmb(self, mouse):
