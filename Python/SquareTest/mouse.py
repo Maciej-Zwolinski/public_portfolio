@@ -1,13 +1,14 @@
 import pygame
 from SpriteDerivedClasses import MouseIntractableSprite
-from States import StateManager, State
+from States import StateManager
+from .utility.singleton_pattern import Singleton
 
 from utility_funtions import abs_distance, distance_xy
 
 DRAG_ENGAGE_MIN_SHIFT = 25
 
 
-class Mouse(pygame.sprite.Sprite):
+class Mouse(pygame.sprite.Sprite, metaclass=Singleton):
     """
     Mouse class controls all interactions between sprites and pygame.mouse object.
     """

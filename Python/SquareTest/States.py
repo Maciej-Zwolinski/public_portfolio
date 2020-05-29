@@ -1,9 +1,10 @@
 import pygame
-from .utility import object_save_load
+from .utility.object_save_load import save_object_internal_state_to_dict, load_object_internal_state_from_dict
+from .utility.singleton_pattern import Singleton
 
 
-class StateManager:
-    # TODO: this should be a singleton class
+class StateManager(metaclass=Singleton):
+
     state_queue = []
 
 
@@ -24,7 +25,7 @@ class State:
             self.static_groups.append(group)
 
     def remove_static_groups(self, *groups, do_kill=False):
-        removed_groups =[]
+        removed_groups = []
         for group in groups:
             try:
                 self.static_groups.remove(group)
@@ -59,15 +60,17 @@ class State:
     def exit(self, do_kill=True):
         self.state_queue.pop()
         if do_kill:
+            self.remove_static_groups((*self.static_groups,), do_kill=True)
+            self.remove_mouse_interaction_groups((*self.mouse_interaction_groups,), do_kill=True)
             del self
         else:
             return self
 
-    def pause(self, *args, event_que=None, clear=False, **kwargs):
+    def pause(self, *args, event_que=None, clear_event_queue=False, **kwargs):
         mouse_state_keys = ('pos', 'active_object', 'drag_mode', {'_lmb': ('primed', 'primed_position')},
                             {'_rmb': ('primed', 'primed_position')})
-        self.resume_state['mouse'] = object_save_load.save_object_internal_state_to_dict(self.mouse, mouse_state_keys)
-        if clear:
+        self.resume_state['mouse'] = save_object_internal_state_to_dict(self.mouse, mouse_state_keys)
+        if clear_event_queue:
             self.resume_state['event_queue'] = event_que
             pygame.event.clear()
         else:
@@ -75,7 +78,7 @@ class State:
 
     def resume(self, *args, clear=True, **kwargs):
         # load mouse object
-        object_save_load.load_object_internal_state_from_dict(self.mouse, self.resume_state['mouse'])
+        load_object_internal_state_from_dict(self.mouse, self.resume_state['mouse'])
         if clear:
             # clears event queue upon resuming
             pygame.event.clear()

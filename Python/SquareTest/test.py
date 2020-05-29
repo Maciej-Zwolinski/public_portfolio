@@ -34,6 +34,12 @@ class SmallSquare(MouseIntractableSprite):
         print('I got clicked with Right Button')
 
 
+class Game(State):
+    pass
+
+
+
+
 def main():
     # startup
     pygame.init()
