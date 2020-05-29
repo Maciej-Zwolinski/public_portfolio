@@ -1,9 +1,13 @@
+from weakref import WeakValueDictionary
+
+
 class Singleton(type):
-    _instances = {}
+    _instances = WeakValueDictionary()
 
     def __call__(cls, *args, **kwargs):
         if cls not in cls._instances:
-            cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
+            instance = super(Singleton, cls).__call__(*args, **kwargs)
+            cls._instances[cls] = instance
         return cls._instances[cls]
 
 
@@ -24,4 +28,5 @@ if __name__ == '__main__':
     y = Boss('Cindy')
     print(f'Boss.name is {y}')
 
-
+    del x, y
+    print(Boss('Cindy'))
