@@ -3,9 +3,7 @@ from States import StateManager, State
 from mouse import Mouse
 from SpriteDerivedClasses import MouseIntractableSprite
 
-INTERFACE_LAYER = 100
-WIN_SIZE = (1600, 900)
-FPS = 1
+from settings import INTERFACE_LAYER, WIN_SIZE, FPS
 
 INTERACTABLES = MouseIntractableSprite.mouse_interaction_group
 HIGHLIGHTED_SPRITES = MouseIntractableSprite.highlighted_sprites

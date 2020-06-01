@@ -7,6 +7,13 @@ class StateManager(metaclass=Singleton):
 
     state_queue = []
 
+    @classmethod
+    def quit(cls):
+        for state in reversed(cls.state_queue):
+            state.exit()
+        pygame.quit()
+        return 0
+
 
 class State:
     state_queue = StateManager.state_queue

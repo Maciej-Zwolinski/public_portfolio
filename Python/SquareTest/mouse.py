@@ -3,9 +3,9 @@ from SpriteDerivedClasses import MouseIntractableSprite
 from States import StateManager
 from .utility.singleton_pattern import Singleton
 
-from utility_funtions import abs_distance, distance_xy
+from settings import DRAG_ENGAGE_MIN_SHIFT
 
-DRAG_ENGAGE_MIN_SHIFT = 25
+from utility_funtions import abs_distance, distance_xy
 
 
 class Mouse(pygame.sprite.Sprite, metaclass=Singleton):

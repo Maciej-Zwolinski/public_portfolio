@@ -94,4 +94,5 @@ class Button(ClickableSprite):
                   text_colour=(128, 0, 0), background_colour=(0, 0, 0)):
         font = pygame.font.Font(font_name, text_size)
         text_render = font.render(text, True, text_colour, background_colour)
-        super().__init__(groups, image=text_render, center=center, topleft=topleft)
+        button = super().__init__(groups, image=text_render, center=center, topleft=topleft)
+        return button
