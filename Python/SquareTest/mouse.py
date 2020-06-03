@@ -1,7 +1,7 @@
 import pygame
 from SpriteDerivedClasses import MouseIntractableSprite
 from States import StateManager
-from .utility.singleton_pattern import Singleton
+from utility.singleton_pattern import Singleton
 
 from settings import DRAG_ENGAGE_MIN_SHIFT
 
@@ -27,7 +27,7 @@ class Mouse(pygame.sprite.Sprite, metaclass=Singleton):
         super().__init__(groups)
         # self.image = pygame.Surface([1, 1])
         # self.rect = self.image.get_rect()
-        self.pos = None
+        self.pos = (0, 0)
         self.owner = owner
         self._lmb = Mouse.LeftMouseButton(self)
         self._rmb = Mouse.RightMouseButton(self)
@@ -49,7 +49,6 @@ class Mouse(pygame.sprite.Sprite, metaclass=Singleton):
 
     @pos.setter
     def pos(self, new_pos: tuple):
-        self.pos = new_pos
         pygame.mouse.set_pos(*new_pos)
 
     def clear(self):
@@ -94,6 +93,7 @@ class Mouse(pygame.sprite.Sprite, metaclass=Singleton):
 
             detects collision with topmost interactable sprite, if none are detected ignores input
             """
+            print(f"{self.__class__.__name__}: primed")
             for mouse_interaction_group in self.mouse.active_state.mouse_interaction_groups:
                 try:
                     self.mouse.active_object = mouse_interaction_group.get_sprites_at(position)[-1]
@@ -117,6 +117,7 @@ class Mouse(pygame.sprite.Sprite, metaclass=Singleton):
     class LeftMouseButton(MouseButton):
 
         def release(self):
+            print(f"{self.__class__.__name__}: released")
             if self.primed:
                 self.mouse.active_object.on_lmb(self.mouse)
                 self.mouse.active_object = None
@@ -125,6 +126,7 @@ class Mouse(pygame.sprite.Sprite, metaclass=Singleton):
     class RightMouseButton(MouseButton):
 
         def release(self):
+            print(f"{self.__class__.__name__}: released")
             if self.primed:
                 self.mouse.active_object.on_rmb(self.mouse)
                 self.mouse.active_object = None

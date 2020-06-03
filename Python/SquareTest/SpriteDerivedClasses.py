@@ -10,7 +10,7 @@ class ClickableSprite(pygame.sprite.Sprite):
         :param center: position of the center of the button, ignored if image not given
         :param topleft: position of the topleft of the button, ignored if image not given
 
-        if image and center not given, than virtual button is created
+        if image and center not given, than virtual sprite is created
         if image given, than center or topleft dictates where the button should appear
         """
         super().__init__(groups)
@@ -21,17 +21,27 @@ class ClickableSprite(pygame.sprite.Sprite):
         elif self.image and topleft:
             self.rect.topleft = topleft
 
+    @classmethod
+    def from_text(cls, text, *groups, center=None, topleft=None, text_size=32, font_name='freesansbold.ttf',
+                  text_colour=(128, 0, 0), background_colour=(0, 0, 0)):
+        font = pygame.font.Font(font_name, text_size)
+        text_render = font.render(text, True, text_colour, background_colour)
+        button = cls(groups, image=text_render, center=center, topleft=topleft)
+        return button
+
     def on_lmb(self, mouse):
         """placeholder function used to control interaction with LeftMouseButton"""
+        print("placeholder 'on_lmb' function called")
         pass
 
     def on_rmb(self, mouse):
         """placeholder function used to control interaction with RightMouseButton"""
+        print("placeholder 'on_rmb' function called")
         pass
 
 
 class MouseIntractableSprite(ClickableSprite):
-    """Class expands basic sprite class, providing extra functionality for clicking, dragging and highlighting"""
+    """Class expands basic sprite class, providing extra functionality for clicking and dragging"""
 
     mouse_interaction_group = pygame.sprite.LayeredUpdates()
     highlighted_sprites = []
@@ -82,17 +92,3 @@ class MouseIntractableSprite(ClickableSprite):
         x, y = self._anchor_point
         dx, dy = dx_dy
         self.rect.center = (x+dx, y+dy)
-
-
-class Button(ClickableSprite):
-    """Class expands basic sprite class, providing extra functionality for clicking and highlighting"""
-
-    highlighted_buttons = []
-
-    @classmethod
-    def from_text(cls, text, *groups, center=None, topleft=None, text_size=32, font_name='freesansbold.ttf',
-                  text_colour=(128, 0, 0), background_colour=(0, 0, 0)):
-        font = pygame.font.Font(font_name, text_size)
-        text_render = font.render(text, True, text_colour, background_colour)
-        button = super().__init__(groups, image=text_render, center=center, topleft=topleft)
-        return button

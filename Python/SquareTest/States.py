@@ -1,6 +1,6 @@
 import pygame
-from .utility.object_save_load import save_object_internal_state_to_dict, load_object_internal_state_from_dict
-from .utility.singleton_pattern import Singleton
+from utility.object_save_load import save_object_internal_state_to_dict, load_object_internal_state_from_dict
+from utility.singleton_pattern import Singleton
 
 
 class StateManager(metaclass=Singleton):
@@ -17,7 +17,6 @@ class StateManager(metaclass=Singleton):
 
 class State:
     state_queue = StateManager.state_queue
-    win = pygame.display.get_active()
 
     def __init__(self, *args, static_groups=None, mouse_interaction_groups=None, mouse=None, **kwargs):
         self.static_groups: list or None = static_groups
@@ -26,6 +25,10 @@ class State:
         self.state_queue.append(self)
 
         self.resume_state = {}
+
+    @property
+    def win(self):
+        return pygame.display.get_active()
 
     def add_static_groups(self, *groups):
         for group in groups:
