@@ -1,26 +1,50 @@
 import pygame
 from utility.object_save_load import save_object_internal_state_to_dict, load_object_internal_state_from_dict
 from utility.singleton_pattern import Singleton
+from utility.classproperty import class_property
+from utility.CustomExceptions import *
+
+from settings import FPS
 
 
 class StateManager(metaclass=Singleton):
 
     state_queue = []
 
+    @class_property
+    def active_state(cls):
+        try:
+            return cls.state_queue[-1]
+        except (AttributeError, IndexError):
+            raise NoActiveState
+
     @classmethod
     def quit(cls):
         for state in reversed(cls.state_queue):
             state.exit()
         pygame.quit()
-        return 0
+
+    @classmethod
+    def loop(cls, once=True):
+        while True:
+            try:
+                pygame.time.Clock().tick(FPS)
+                print('-----')
+                cls.active_state.update()
+                cls.active_state.draw()
+            except NoActiveState as e:
+                print(e)
+                break
 
 
 class State:
     state_queue = StateManager.state_queue
 
-    def __init__(self, *args, static_groups=None, mouse_interaction_groups=None, mouse=None, **kwargs):
-        self.static_groups: list or None = static_groups
-        self.mouse_interaction_groups: list or None = mouse_interaction_groups
+    def __init__(self, *args, static_groups=None, mouse_interaction_groups=None, background=None, mouse=None, **kwargs):
+        self.static_groups: list or None = [] if static_groups is None else static_groups
+        self.mouse_interaction_groups: list or None = \
+            [] if mouse_interaction_groups is None else mouse_interaction_groups
+        self.background = background
         self.mouse = mouse
         self.state_queue.append(self)
 
@@ -28,7 +52,7 @@ class State:
 
     @property
     def win(self):
-        return pygame.display.get_active()
+        return pygame.display.get_surface()
 
     def add_static_groups(self, *groups):
         for group in groups:
@@ -70,9 +94,12 @@ class State:
     def exit(self, do_kill=True):
         self.state_queue.pop()
         if do_kill:
-            self.remove_static_groups((*self.static_groups,), do_kill=True)
-            self.remove_mouse_interaction_groups((*self.mouse_interaction_groups,), do_kill=True)
+            if self.static_groups:
+                self.remove_static_groups((*self.static_groups,), do_kill=True)
+            if self.mouse_interaction_groups:
+                self.remove_mouse_interaction_groups((*self.mouse_interaction_groups,), do_kill=True)
             del self
+            return None
         else:
             return self
 
@@ -85,6 +112,7 @@ class State:
             pygame.event.clear()
         else:
             self.resume_state['event_queue'] = []
+        return self.win.copy(), self.mouse
 
     def resume(self, *args, clear=True, **kwargs):
         # load mouse object
@@ -98,3 +126,21 @@ class State:
         # update the mouse position and resolve any remaining events
         self.mouse.update()
         self.resume_state = {}
+
+    def update(self):
+        events = pygame.event.get()
+        for event in events:
+            if event.type == pygame.QUIT:
+                StateManager.quit()
+        self.mouse.update(events)
+
+    def draw(self):
+        if self.background:
+            self.win.blit(self.background)
+        else:
+            self.win.fill((255, 255, 255))
+        for static_group in self.static_groups:
+            static_group.draw(self.win)
+        for instractive_group in self.mouse_interaction_groups:
+            instractive_group.draw(self.win)
+        pygame.display.flip()

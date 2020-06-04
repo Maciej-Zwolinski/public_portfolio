@@ -1,14 +1,11 @@
 from utility.singleton_pattern import Singleton
+from utility.CustomExceptions import BreakException
 from States import State, StateManager
 from SpriteDerivedClasses import ClickableSprite
 from mouse import Mouse
 
 from settings import WIN_SIZE, FPS
 import pygame
-
-
-class Game(State, metaclass=Singleton):
-    pass
 
 
 class Rectangle(pygame.sprite.Sprite):
@@ -21,19 +18,24 @@ class Rectangle(pygame.sprite.Sprite):
         self.rect.center = center
 
 
+class Game(State, metaclass=Singleton):
+    pass
+
+
 class ExitButton(ClickableSprite):
 
     def __call__(self, *groups):
-        return self.from_text(self.__class__, "Exit", groups, center=(WIN_SIZE[0]//2, WIN_SIZE[1]//2))
+        return self.from_text("Exit", groups, center=(WIN_SIZE[0]//2, WIN_SIZE[1]//2))
 
     def on_lmb(self, mouse):
-        pygame.quit()
-
-    def check(self):
-        print("'it's me")
+        StateManager.quit()
 
 
-class Continue(ClickableSprite):
+class ContinueButton(ClickableSprite):
+
+    def __call__(self, *groups):
+        return self.from_text("Continue", groups, center=(WIN_SIZE[0]//2, WIN_SIZE[1]//2 + 50))
+
     def on_lmb(self, mouse):
         pass
 
@@ -41,21 +43,15 @@ class Continue(ClickableSprite):
 class MainMenu(State, metaclass=Singleton):
 
     def __init__(self, background=None):
-        background = pygame.sprite.Sprite() if background is None else background
-        # exit_button =
-        # outside_box = Rectangle()
 
-        super().__init__(static_groups=[pygame.sprite.Group()],
-                         mouse_interaction_groups=[pygame.sprite.LayeredUpdates()],
-                         mouse=Mouse(''))
+        buttons = pygame.sprite.LayeredUpdates()
+        ExitButton()(buttons)
+        ContinueButton()(buttons)
+        super().__init__(mouse_interaction_groups=[buttons],
+                         background=background, mouse=Mouse(''))
 
 
 if __name__ == '__main__':
-
-    def draw_window(win, sprites):
-        win.fill((255, 255, 255))
-        sprites.draw(win)
-        pygame.display.update()
 
     # startup
     pygame.init()
@@ -67,21 +63,12 @@ if __name__ == '__main__':
 
     # setting up screen
     mouse = Mouse('Player')
-    INTERACTABLES = pygame.sprite.LayeredUpdates()
-    exit_button = ExitButton(INTERACTABLES)
-    menu = State(mouse_interaction_groups=[INTERACTABLES])
+    # INTERACTABLES = pygame.sprite.LayeredUpdates()
+    # exit_button = ExitButton()(INTERACTABLES)
+    # exit_button = ExitButton.from_text("Exit", INTERACTABLES, center=(WIN_SIZE[0]//2, WIN_SIZE[1]//2))
+    # menu = State(mouse_interaction_groups=[INTERACTABLES], mouse=mouse)
 
-
+    menu = MainMenu()
     # starting game
 
-    while run:
-        print('------')
-        clock.tick(FPS)
-        events = pygame.event.get()
-        for event in events:
-            if event.type == pygame.QUIT:
-                pygame.quit()
-
-        mouse.update(events)
-
-        draw_window(win, INTERACTABLES)
+    StateManager.loop()
