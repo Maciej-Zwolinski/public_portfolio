@@ -35,6 +35,8 @@ class StateManager(metaclass=Singleton):
             except NoActiveState as e:
                 print(e)
                 break
+            if once:
+                break
 
 
 class State:

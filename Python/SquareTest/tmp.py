@@ -71,4 +71,4 @@ if __name__ == '__main__':
     menu = MainMenu()
     # starting game
 
-    StateManager.loop()
+    StateManager.loop(once=False)
