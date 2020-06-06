@@ -43,6 +43,9 @@ class State:
     state_queue = StateManager.state_queue
 
     def __init__(self, *args, static_groups=None, mouse_interaction_groups=None, background=None, mouse=None, **kwargs):
+
+        pygame.display.set_caption(f'{self.__class__.__name__}')
+
         self.static_groups: list or None = [] if static_groups is None else static_groups
         self.mouse_interaction_groups: list or None = \
             [] if mouse_interaction_groups is None else mouse_interaction_groups
@@ -100,6 +103,7 @@ class State:
                 self.remove_static_groups((*self.static_groups,), do_kill=True)
             if self.mouse_interaction_groups:
                 self.remove_mouse_interaction_groups((*self.mouse_interaction_groups,), do_kill=True)
+            self.mouse.clear()
             del self
             return None
         else:
@@ -114,7 +118,8 @@ class State:
             pygame.event.clear()
         else:
             self.resume_state['event_queue'] = []
-        return self.win.copy(), self.mouse
+        self.mouse.clear()
+        return self.win.copy()
 
     def resume(self, *args, clear=True, **kwargs):
         # load mouse object
@@ -138,7 +143,7 @@ class State:
 
     def draw(self):
         if self.background:
-            self.win.blit(self.background)
+            self.win.blit(self.background, (0,0))
         else:
             self.win.fill((255, 255, 255))
         for static_group in self.static_groups:
