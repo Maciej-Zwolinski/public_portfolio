@@ -1,6 +1,6 @@
 This directory contains a solution to a following problem:
 1. in a .wav file there might or might not be a corrupted section.
-2. three sample files were given: 2 corrupted 1 not
+2. three sample files were given: 2 corrupted 1 not. Files are not part of this repository due to copyright issues.
 
 
 Rationale behind the solution:

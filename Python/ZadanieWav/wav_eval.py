@@ -11,45 +11,45 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 
-def gen_low_regions(file):
+def generate_low_regions(file_name):
     """Returns a list of 'low' regions boundries"""
-    n_channel, sample_rate, data = utils.wav_to_array(file)
-    p = list()
+    number_of_channels, sample_rate, data = utils.wav_to_array(file_name)
+    low_regions = list()
     for span in args.span:
-        x = utils.avg_zerolike_density(data, span=span)
-        h = utils.edge_detection(x, span=span)
-        g = utils.edge_cleanup(h, sample_rate)
-        p.append(copy.deepcopy(g))
+        density_data = utils.avg_zerolike_density(data, span=span)
+        edges_list = utils.list_rising_and_falling_edges(density_data, span=span)
+        clean_edges = utils.edge_cleanup(edges_list, sample_rate)
+        low_regions.append(copy.deepcopy(clean_edges))
 
-    return p, n_channel
+    return low_regions, number_of_channels
 
 
-def boundry_stability_check(p, n_channel):
-    """Returns boundries that are stable across all spans"""
-    while len(p) > 1:
-        for k in range(n_channel):
+def boundry_stability_check(low_regions, number_of_channels):
+    """Returns boundaries that are stable across all spans"""
+    while len(low_regions) > 1:
+        for channel_number in range(number_of_channels):
             i = 0
-            while i < len(p[0][k]):
-                if not (p[0][k][i] in p[1][k][:]):
-                    p[0][k].pop(i)
+            while i < len(low_regions[0][channel_number]):
+                if not (low_regions[0][channel_number][i] in low_regions[1][channel_number][:]):
+                    low_regions[0][channel_number].pop(i)
                 else:
                     i += 1
-            p[1].pop(k)
-        p.pop(1)
+            low_regions[1].pop(channel_number)
+        low_regions.pop(1)
 
-    return p
+    return low_regions
 
 
-def set_flags(p, n_channel):
+def set_flags(stable_boundaries, number_of_channels):
     """Sets corruption flags for channels"""
-    flg = list()
-    for k in range(n_channel):
-        if p[0][k]:
-            flg.append(0)
+    flags = list()
+    for channel_number in range(number_of_channels):
+        if stable_boundaries[0][channel_number]:
+            flags.append(0)
         else:
-            flg.append(1)
+            flags.append(1)
 
-    return flg
+    return flags
 
 
 def main(args):
@@ -57,25 +57,25 @@ def main(args):
     logger.debug(args.span)
     assert len(args.span) > 2, "Span too short, at least 2 elements required"
 
-    for file in os.listdir(args.datadir):
-        if file.endswith('.wav'):
-            p, n_channel = gen_low_regions(os.path.join(args.datadir, file))
-            p = boundry_stability_check(p, n_channel)
-            flg = set_flags(p, n_channel)
+    for file_name in os.listdir(args.datadir):
+        if file_name.endswith('.wav'):
+            low_regions, number_of_channels = generate_low_regions(os.path.join(args.datadir, file_name))
+            stable_boundaries = boundry_stability_check(low_regions, number_of_channels)
+            flags = set_flags(stable_boundaries, number_of_channels)
 
-            if (1 in flg) and (0 not in flg):
-                logger.info(f'[{file}][valid]')
+            if (1 in flags) and (0 not in flags):
+                logger.info(f'[{file_name}][valid]')
                 continue
-            elif (1 in flg) and (0 in flg):
-                out = f'[{file}][partially valid]'
+            elif (1 in flags) and (0 in flags):
+                out = f'[{file_name}][partially valid]'
             else:
-                out = f'[{file}][invalid]'
+                out = f'[{file_name}][invalid]'
 
-            for k in range(n_channel):
-                if flg[k] == 1:
+            for k in range(number_of_channels):
+                if flags[k] == 1:
                     out += '[NaN]'
                 else:
-                    out += f'[{p[0][k][0][0]}]'
+                    out += f'[{stable_boundaries[0][k][0][0]}]'
 
             logger.info(f"{out}")
 
@@ -87,7 +87,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument(
         '--datadir',
-        help='Directory to be chaecked for .wav files. Default "./"',
+        help='Directory to be checked for .wav file_names. Default "./"',
         default='./')
     parser.add_argument(
         '--span',
